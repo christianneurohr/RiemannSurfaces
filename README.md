@@ -91,11 +91,11 @@ g6 := RandomRiemannSurface(Random([2..4]),Random([2..4]):NFDeg:=Random([1..5]));
 
 F := <f1,f2,f4,f5,f6,f7,q1,q2,q3,q4,q5,q6,q7,q8,q9,fk(Random([2..10])),g1,g2,g3,g4,g5,g6>;
 
-/* Choose a random example */
-f := F[Random([1..#F])];
-
 /* Printing */
 SetVerbose("RS",2);
+
+/* Choose a random example */
+f := F[Random([1..#F])];
 
 /* Desired precision in decimal digits */
 Prec := Random([30,100]); // Precision can be higher than 100

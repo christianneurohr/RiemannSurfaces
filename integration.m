@@ -28,6 +28,9 @@ intrinsic Print(IntSch::IntScheme)
 	if assigned IntSch`IntPar then
 		print "Bounds:",IntSch`Bounds;
 	end if;
+	if IntSch`Type eq "GJ" then
+		print "AlphaBeta:",IntSch`AlphaBeta;
+	end if;
 end intrinsic;
 
 function DE_IntegrationParameters( r, Prec : Bounds := [NAIVEBOUND,NAIVEBOUND], Lambda := Pi(Parent(r))/2 )
@@ -77,6 +80,7 @@ intrinsic TanhSinhIntegrationPoints( N::RngIntElt, h::FldReElt : Lambda:=Pi(Pare
 	ekh_inv := 1; // e^-0h
 	Abscissas_ := [];
 	Weights_ := [];
+	ExtraWeights_ := [];
 	lh := Lambda * h;
 	oh := One(R)/2;
 	for k in [1..N] do
@@ -87,21 +91,27 @@ intrinsic TanhSinhIntegrationPoints( N::RngIntElt, h::FldReElt : Lambda:=Pi(Pare
       		//ch2 := (ekh+ekh_inv); //  2*cosh(kh) = (e^kh + e^-kh)
       		esh := Exp(Lambda*sh); // e^(Lambda*sinh(kh))
       		esh_inv := 1/esh; // e^-(Lambda*sinh(kh))
-		chsh_inv := 2/(esh+esh_inv); // 1/cosh(Lambda*sinh(kh)))
+		//chsh_inv := 2/(esh+esh_inv); // 1/cosh(Lambda*sinh(kh)))
+		chsh := (esh+esh_inv)*oh; // cosh(Lambda*sinh(kh)))
       		//chsh2_inv := 1/(esh+esh_inv); // 1/(2*cosh(Lambda*sinh(kh)))
 		shsh := oh*(esh-esh_inv); // sinh(Lambda*sinh(kh))
       		//shsh2 := esh-esh_inv; // 2*sinh(Lambda*sinh(kh))
-		thsh := shsh*chsh_inv; // tanh(Lambda*sinh(kh)) =  sinh(Lambda*sinh(kh)) / cosh(Lambda*sinh(kh))
+		//thsh := shsh*chsh_inv; // tanh(Lambda*sinh(kh)) =  sinh(Lambda*sinh(kh)) / cosh(Lambda*sinh(kh))
+		thsh := shsh/chsh; // tanh(Lambda*sinh(kh))
       		//thsh := shsh2*chsh2_inv; // tanh(Lambda*sinh(kh)) =  2*sinh(Lambda*sinh(kh)) / 2*cosh(Lambda*sinh(kh))
 		Append(~Abscissas_,thsh);
-		Append(~Weights_,ch*chsh_inv*chsh_inv*lh); // = cosh(kh) / cosh(Lambda*sinh(kh))^2
+		chsh *:= chsh;
+		//Append(~Weights_,ch*chsh_inv*chsh_inv*lh); // = cosh(kh) / cosh(Lambda*sinh(kh))^2
+		Append(~Weights_,ch*lh/chsh); // = Lambda * h * cosh(kh) / cosh(Lambda*sinh(kh))^2
 		//Append(~Weights_,2*ch2*chsh2_inv^2); // = 2*2*cosh(kh) / 4*(cosh(Lambda*sinh(kh)))^2
+		Append(~ExtraWeights_,chsh);
      	end for;
 
 	Abscissas := Reverse([-zk : zk in Abscissas_]) cat [0] cat Abscissas_;
 	Weights  := Reverse(Weights_) cat [lh] cat Weights_;
+	ExtraWeights := Reverse(ExtraWeights_) cat [1] cat ExtraWeights_;
 
-  	return Abscissas, Weights;
+  	return Abscissas, Weights, ExtraWeights;
 end intrinsic;
 
 function DistanceToBurger(x,r: Lambda := RPI/2, ss:=20 )
@@ -947,8 +957,8 @@ procedure HeuristicBound( Gamma, DFF_Factors, Lr, X )
 /* Computes a heuristic bound that for integrating DFF along Gamma */
 	C<I> := BaseRing(Universe(DFF_Factors));
 	Cz<z> := PolynomialRing(C);
-	//m := X`Degree[1];
-	m := Degree(X`AffineModel,2);
+	m := X`Degree[1];
+	//m := Degree(X`AffineModel,2);
 	q := #Lr;
 	if #Gamma`Bounds eq 0 then
 		Gamma`IN := Max( [ p : p in [1..q] | Gamma`IntPar gt Lr[p] ] cat [1] );
@@ -979,7 +989,7 @@ end procedure;
 
 	Numerical integration for superelliptic Riemann surfaces
  
-	Christian Neurohr, August 2018
+	Christian Neurohr, June 2019
 
 *******************************************************************************/
 
@@ -1016,10 +1026,15 @@ intrinsic GaussJacobiIntegrationPoints( AB::SeqEnum[FldRatElt], N::RngIntElt, Pr
 	
 	assert &and[ AB[1] gt -1, AB[2] gt -1];
 
-	// Careful: AB[1] corresponds to (1-u) and AB[2] to (1+u)
+	if AB eq [0/1,0/1] then
+		return GaussLegendreIntegrationPoints(N,Prec);
+	end if;
+
+	/* Careful: AB[1] corresponds to (1-u) and AB[2] to (1+u) */
 	//Reverse(~AB);
 	Abscissas := []; Weights := [];
-	R := RealField(Prec+5);
+	PrecPlus5 := Prec + 5;
+	R := RealField(PrecPlus5);
 
 	if AB[1] eq AB[2] then
 		n := Floor((N+1)/2);
@@ -1027,19 +1042,25 @@ intrinsic GaussJacobiIntegrationPoints( AB::SeqEnum[FldRatElt], N::RngIntElt, Pr
 		n := N;
 	end if;
 
-	// Gauss-Chebyshev
+	/* Gauss-Chebyshev */
 	if AB eq [-1/2,-1/2] then
 		const := 1/(2*N)*Pi(R);
 		for k in [1..n] do
 			Append(~Abscissas,Cos((2*k-1)*const));
 		end for;
-		Append(~Weights,2*const);
+		const *:= 2; 
+		Weights := [ const : k in [1..N] ];
+		if N mod 2 eq 1 then
+			Abscissas := Reverse([ -x : x in Abscissas]) cat [0] cat Abscissas;
+		else
+			Abscissas := Reverse([ -x : x in Abscissas]) cat Abscissas;
+		end if;
 		return Abscissas,Weights;
 	end if;
 
-	// From here on: Gauss-Jacobi
+	/* From here on: Gauss-Jacobi */
 
-	// Precomputations
+	/* Precomputations */
 	Err := 10^-(Prec+1);
 	RN := R!N; N2 := N^2;	
 	B := []; C := [];
@@ -1053,7 +1074,6 @@ intrinsic GaussJacobiIntegrationPoints( AB::SeqEnum[FldRatElt], N::RngIntElt, Pr
 		Append(~B,[tmp*(tmp-1)*(tmp-2)*tmp2,(tmp-1)*ASQMBSQ*tmp2]);
 		Append(~C,2*(j-1+AB[1])*(j-1+AB[2])*tmp*tmp2);
 	end for;
-	//ChangeUniverse(~A,R);
 	OH := R!(1/2);
 	AMBOT := AMB * OH;
 	APBP2OT := (APB+2) * OH;
@@ -1061,10 +1081,7 @@ intrinsic GaussJacobiIntegrationPoints( AB::SeqEnum[FldRatElt], N::RngIntElt, Pr
 	Ntmp := N*tmp;
 	Const := tmp*2^APB*Gamma(AB[1]+RN)*Gamma(AB[2]+RN)/(Gamma(RN+1)*Gamma(RN+APB+1));
 
-	print "B:",B;
-	print "C:",C;
-
-	// Start with low precision
+	/* Start with low precision */
 	sp := 16;
 	RL := RealField(sp);
 	
@@ -1101,7 +1118,7 @@ intrinsic GaussJacobiIntegrationPoints( AB::SeqEnum[FldRatElt], N::RngIntElt, Pr
 		z := RL!z;
 		p := sp;
     		repeat
-			p := Min(2*p,Prec);
+			p := Min(2*p,PrecPlus5);
 			z := ChangePrecision(z,p);
 			p1 := AMBOT+APBP2OT*z;
 			p2 := 1;
@@ -1139,7 +1156,7 @@ procedure SE_GJ_Integration( Params, X : AJM := false )
 					GJInt`AlphaBeta := [0/1,-j/m];
 					GJInt`N := N;
 					GJInt`Params := P;
-					GJInt`Abscissas, GJInt`Weights := GaussJacobiIntegrationPoints(GJInt`N,Precision(X`ComplexFields[3]),0,-j/m);
+					GJInt`Abscissas, GJInt`Weights := GaussJacobiIntegrationPoints([0,-j/m],GJInt`N,Precision(X`ComplexFields[3]));
 					GJInt`Prec := Precision(X`ComplexFields[3]);
 					Append(~GJ_Integrations,GJInt);
 				end for;
@@ -1158,7 +1175,7 @@ procedure SE_GJ_Integration( Params, X : AJM := false )
 						GJInt`AlphaBeta := [0/1,-j/m];
 						GJInt`N := N;
 						GJInt`Params := Params[k];
-						GJInt`Abscissas, GJInt`Weights := GaussJacobiIntegrationPoints(GJInt`N,Precision(X`ComplexFields[3]),0,-j/m);
+						GJInt`Abscissas, GJInt`Weights := GaussJacobiIntegrationPoints([0,-j/m],GJInt`N,Precision(X`ComplexFields[3]));
 						GJInt`Prec := Precision(X`ComplexFields[3]);
 						Append(~GJ_Integrations,GJInt);
 					end for;
@@ -1181,7 +1198,7 @@ procedure SE_GJ_Integration( Params, X : AJM := false )
 				GJInt`AlphaBeta := [-j/m,-j/m];
 				GJInt`N := N;
 				GJInt`Params := P;
-				GJInt`Abscissas, GJInt`Weights := GaussJacobiIntegrationPoints(GJInt`N,Precision(X`ComplexFields[3]),-j/m,-j/m);
+				GJInt`Abscissas, GJInt`Weights := GaussJacobiIntegrationPoints([-j/m,-j/m],GJInt`N,Precision(X`ComplexFields[3]));
 				GJInt`Prec := Precision(X`ComplexFields[3]);
 				Append(~GJ_Integrations,GJInt);
 			end for;
@@ -1448,18 +1465,22 @@ function SE_Integrals_Factor_AJM( VectorIntegral,Edge,X)
 
 	return VectorIntegral;
 end function;
+
 /* Compute superelliptic integrals for spanning tree */
-function DE_Integral(Edge,X)
+function DE_Integral(Edge,X:AJM:=false)
 	C_0 := Zero(X`ComplexFields[3]); 
 	m := X`Degree[1]; 
-	nm2 := X`Degree[2]-2;
 	DFF := X`HolomorphicDifferentials;
-	DEInt := X`IntSchemes[Edge`IntSch];
+	DEInt := X`IntSchemes["DE"][Edge`IntSch];
 	VectorIntegral := [ C_0 : j in [1..X`Genus] ];
-
-	// Start with zero
-	y := DEInt`Weights[1][2]/AC_mthRoot(0,Edge,X`Zetas,m,nm2); // 1/y(0)
-	wy := y^DFF[1] * DEInt`Weights[1][1];
+	if AJM then
+		nm := X`Degree[2]-1;
+	else
+		nm := X`Degree[2]-2;
+	end if;
+	/* Start with zero */
+	y := DEInt`ExtraWeights[1]/AC_mthRoot(0,Edge,X`Zetas,m,nm); // 1/y(0)
+	wy := y^DFF[1] * DEInt`Weights[1];
 	ct := 1;
 	for j in [1..DFF[2]] do
 		if j gt 1 then
@@ -1470,14 +1491,14 @@ function DE_Integral(Edge,X)
 		ct +:= DFF[3][j];
 	end for;
 
-	// Evaluate differentials at abisccsas
+	/* Evaluate differentials at abisccsas */
 	for t in [2..DEInt`NPoints] do
 		x := DEInt`Abscissas[t];
 		mx := -x;
-		y1 := DEInt`Weights[t][2]/AC_mthRoot(x,Edge,X`Zetas,m,nm2); // 1/y(x)
-		y2 := DEInt`Weights[t][2]/AC_mthRoot(mx,Edge,X`Zetas,m,nm2); // 1/y(-x)
-		wy1 := y1^DFF[1] * DEInt`Weights[t][1];
-		wy2 := y2^DFF[1] * DEInt`Weights[t][1];
+		y1 := DEInt`ExtraWeights[t]/AC_mthRoot(x,Edge,X`Zetas,m,nm); // 1/y(x)
+		y2 := DEInt`ExtraWeights[t]/AC_mthRoot(mx,Edge,X`Zetas,m,nm); // 1/y(-x)
+		wy1 := y1^DFF[1] * DEInt`Weights[t];
+		wy2 := y2^DFF[1] * DEInt`Weights[t];
 		ct := 1;
 		for j in [1..DFF[2]] do
 			if j gt 1 then
@@ -1501,40 +1522,32 @@ function DE_Integral(Edge,X)
 	end for;
 	return VectorIntegral;
 end function;
-function GJ_Integral(Edge,X)
-	C_0 := Zero(X`ComplexFields[3]); 
-	GJInts := X`IntSchemes[Edge`IntSch];
-	N := GJInts[1]`NPoints;
+function GJ_Integral(Edge,X:AJM:=false)
+	C_0 := Zero(X`ComplexFields[3]);
+	GJInts := X`IntSchemes["GJ"][Edge`IntSch];
+	N := GJInts[1]`N;
 	DFF := X`HolomorphicDifferentials;
 	VectorIntegral := [ C_0 : j in [1..X`Genus] ];
-	N2 := Floor(N/2);
-	
-	if N mod 2 eq 1 then
-		ct := 1;
-		y := 1/AC_mthRoot(0,Edge,X`Zetas,X`Degree[1],X`Degree[2]-2); // 1/y(0)
-		for j in [1..DFF[2]] do
-			wy := GJInts[j]`Weights[N2+1] * y^(DFF[4][ct]);
-			VectorIntegral[ct] +:= wy;
-			ct +:= DFF[3][j];
-		end for;
-	end if;
 
-	// Evaluate differentials at abisccsas
-	for t in [1..N2] do
+	/* Abel-Jacobi? */
+	if AJM then
+		nm := X`Degree[2]-1;
+	else
+		nm := X`Degree[2]-2;
+	end if;
+print "GJINt:",GJInts;
+	/* Evaluate differentials at abisccsas */
+	for t in [1..N] do
 		ct := 1;
 		for j in [1..DFF[2]] do
 			x := GJInts[j]`Abscissas[t];
-			mx := -x;
-			y1 := 1/AC_mthRoot(x,Edge,X`Zetas,X`Degree[1],X`Degree[2]-2); // 1/y(x)
-			y2 := 1/AC_mthRoot(mx,Edge,X`Zetas,X`Degree[1],X`Degree[2]-2); // 1/y(-x)
-			wy1 := GJInts[j]`Weights[t] * y1^(DFF[4][ct]);
-			wy2 := GJInts[j]`Weights[t] * y2^(DFF[4][ct]);
-			VectorIntegral[ct] +:= wy1 + wy2;
+			y := 1/AC_mthRoot(x,Edge,X`Zetas,X`Degree[1],nm); // 1/y(x)
+			wy := GJInts[j]`Weights[t] * y^(DFF[4][ct]);
+			VectorIntegral[ct] +:= wy;
 			ct +:= 1;
 			for k in [1..DFF[3][j]-1] do
-				wy1 *:= x;
-				wy2 *:= mx;
-				VectorIntegral[ct] +:= wy1 + wy2;
+				wy *:= x;
+				VectorIntegral[ct] +:= wy;
 				ct +:= 1;
 			end for;
 		end for;
@@ -1565,13 +1578,13 @@ end function;
 function SE_Integrals_Edge_AJM(E,X)
 	if E`IntMethod eq "DE" then
 		DEInt := X`IntSchemes["DE"][E`IntSch];
-		VectorIntegral := DE_Integral(E,X);
+		VectorIntegral := DE_Integral(E,X:AJM);
 //InternalSEDEIntegration(<2*DEInt`N+1,DEInt`Abscissas,DEInt`Weights,DEInt`ExtraWeights,X`HolomorphicDifferentials,E`Data,E`Isgn,X`Zetas,X`Degree[1],X`Degree[2]-1,E`up,X`Genus>);
 	else
 		GJInts := X`IntSchemes["GJ"][E`IntSch];
 		GJAbscissas := [ GJInt`Abscissas : GJInt in GJInts ];
 		GJWeights := [ GJInt`Weights : GJInt in GJInts ];
-		VectorIntegral := GJ_Integral(E,X);
+		VectorIntegral := GJ_Integral(E,X:AJM);
 //InternalSEGJIntegration(<GJInts[1]`N,GJAbscissas,GJWeights,X`HolomorphicDifferentials,E`Data,E`Isgn,X`Zetas,X`Degree[1],X`Degree[2]-1,E`up,X`Genus>);
 	end if;
 	return SE_Integrals_Factor_AJM(VectorIntegral,E,X);

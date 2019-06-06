@@ -388,8 +388,8 @@ end intrinsic;
 
 function InternalDiscriminantPoints( X )
 /* Computes the roots of the discriminant of f in the variable z \in [x,y] */
-	//Kxy := Parent(X`DefiningPolynomial);
-	Kxy := Parent(X`AffineModel); 
+	Kxy := Parent(X`DefiningPolynomial);
+	//Kxy := Parent(X`AffineModel); 
 	K := BaseRing(Kxy);
 	Fact1 := Factorization(UnivariatePolynomial(Discriminant(X`DefiningPolynomial,2)));
 	LC := UnivariatePolynomial(LeadingCoefficient(X`DefiningPolynomial,2));

@@ -91,8 +91,8 @@ procedure PeriodMatrix(X)
 	DFF := X`HolomorphicDifferentials; 
 
 	/* Symmetric group on m elements (sheets) */
-	//m := X`Degree[1];
-	m := Degree(X`AffineModel,2);
+	m := X`Degree[1];
+	//m := Degree(X`AffineModel,2);
 	Sym := Sym(m);
 	Id := Id(Sym);
 	vprint RS,1 : "#Sheets:",m;

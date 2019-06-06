@@ -218,17 +218,17 @@ intrinsic RiemannSurface( f::RngMPolElt, sigma::PlcNumElt : Precision := 30, Int
 	end for;
 	vprint RS,1 : "Genus:",X`Genus;
 	vprint RS,1 : "#InnerFaces:",#InnerFaces;
-	InnerFaces := [];
+	//InnerFaces := [];
 	if X`Genus ne #InnerFaces then
 		X`Baker := false;
-		//dx := Differential(X`FunctionField.1);
-		if Degree(f,1) gt Degree(f,2) then
+		dx := Differential(X`FunctionField.1);
+		/*if Degree(f,1) gt Degree(f,2) then
 			vprint RS,1 : "Integrate w.r.t dx";
 			dx := Differential(X`FunctionField.1);  // dx
 		else
 			vprint RS,1 : "Integrate w.r.t dy";
 			dx := Differential(X`FunctionField.2);  // dy
-		end if;
+		end if;*/
 		PRs := []; Pows := []; DFF_Factors := {};
 		for j in [1..X`Genus] do
 			PR,Pow := ProductRepresentation(X`DFF[j]/dx);
@@ -247,20 +247,20 @@ intrinsic RiemannSurface( f::RngMPolElt, sigma::PlcNumElt : Precision := 30, Int
 			end for;
 		end for;
 		print "DFF_Factors:",DFF_Factors;
-		DFF_Factors := [ Numerator(RationalFunction(Fac,K)) : Fac in DFF_Factors ];
+		/*DFF_Factors := [ Numerator(RationalFunction(Fac,K)) : Fac in DFF_Factors ];
 		if X`Degree[1] ge X`Degree[2] then
 			DFF_Factors := [ Evaluate(Fac,[Parent(Fac).2,Parent(Fac).1]) : Fac in DFF_Factors ];
 			X`AffineModel := Evaluate(f,[Kxy.2,Kxy.1]);
-			/*NewFac := RationalFunction(dx/Differential(X`FunctionField.1),K);
+			NewFac := RationalFunction(dx/Differential(X`FunctionField.1),K);
 			Append(~DFF_Factors,Numerator(NewFac));
 			Append(~DFF_Factors,Denominator(NewFac));
 			DFF_Powers := VerticalJoin(DFF_Powers,Matrix(Integers(),1,X`Genus,[1 : j in [1..X`Genus]]));
-			DFF_Powers := VerticalJoin(DFF_Powers,Matrix(Integers(),1,X`Genus,[-1 : j in [1..X`Genus]]));*/
+			DFF_Powers := VerticalJoin(DFF_Powers,Matrix(Integers(),1,X`Genus,[-1 : j in [1..X`Genus]]));
 		else
 			X`AffineModel := f;
 		end if;
-		NrFac := #DFF_Factors;
-		//DFF_Factors := [ Numerator(Fac) : Fac in DFF_Factors ];
+		NrFac := #DFF_Factors;*/
+		DFF_Factors := [ Numerator(Fac) : Fac in DFF_Factors ];
 		vprint RS,2 : "DFF_Factors:",DFF_Factors;
 		vprint RS,2 : "DFF_Powers:",DFF_Powers;
 		MinPows := [ Min( [DFF_Powers[j][k] : k in [1..X`Genus]]) : j in [1..NrFac] ];
@@ -322,8 +322,8 @@ intrinsic RiemannSurface( f::RngMPolElt, sigma::PlcNumElt : Precision := 30, Int
 
 	/* Homogenization */
 	Kxyz := PolynomialRing(K,3);
-	//X`HomoDefPol := Homogenization(Evaluate(X`DefiningPolynomial,[Kxyz.1,Kxyz.2]),Kxyz.3);
-	X`HomoDefPol := Homogenization(Evaluate(X`AffineModel,[Kxyz.1,Kxyz.2]),Kxyz.3);
+	X`HomoDefPol := Homogenization(Evaluate(X`DefiningPolynomial,[Kxyz.1,Kxyz.2]),Kxyz.3);
+	//X`HomoDefPol := Homogenization(Evaluate(X`AffineModel,[Kxyz.1,Kxyz.2]),Kxyz.3);
 
 	/* Arrays for integration */
 	vprint RS,1 : "IntMethod:",IntMethod;
@@ -350,8 +350,8 @@ intrinsic RiemannSurface( f::RngMPolElt, sigma::PlcNumElt : Precision := 30, Int
 	C<I> := Parent(X`BasePoint);
 	Cz<z> := PolynomialRing(C);
 	Cxy<x,y> := PolynomialRing(C,2);
-	//X`ComplexDefPol := EmbedPolynomial(X`DefiningPolynomial,X`Embedding,Cxy);
-	X`ComplexDefPol := EmbedPolynomial(X`AffineModel,X`Embedding,Cxy);
+	X`ComplexDefPol := EmbedPolynomial(X`DefiningPolynomial,X`Embedding,Cxy);
+	//X`ComplexDefPol := EmbedPolynomial(X`AffineModel,X`Embedding,Cxy);
 	CXYZ<xx,yy,zz> := PolynomialRing(C,3);
 	X`ComplexHomoDefPol := Homogenization(Evaluate(X`ComplexDefPol,[xx,yy]),zz);
 
@@ -366,8 +366,8 @@ intrinsic RiemannSurface( f::RngMPolElt, sigma::PlcNumElt : Precision := 30, Int
 		end for;
 		fx0 := Cz!Cfx0;
 		dfx0 := Degree(fx0);
-		//if dfx0 lt X`Degree[1] then
-		if dfx0 lt Degree(X`AffineModel,2) then
+		if dfx0 lt X`Degree[1] then
+		//if dfx0 lt Degree(X`AffineModel,2) then
 			vprint RS,2 : "Careful: Fiber contains y-infinite points!";
 			if dfx0 eq 0 then
 				return [];

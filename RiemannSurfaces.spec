@@ -10,4 +10,5 @@
 	riesrfdivpts.m
 	paths.m
 	infinitepoints.m
+	testfunctions.m
 }
