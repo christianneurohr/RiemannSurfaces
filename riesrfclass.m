@@ -247,8 +247,8 @@ intrinsic RiemannSurface( f::RngMPolElt, sigma::PlcNumElt : Precision := 30, Int
 			end for;
 		end for;
 		print "DFF_Factors:",DFF_Factors;
-		/*DFF_Factors := [ Numerator(RationalFunction(Fac,K)) : Fac in DFF_Factors ];
-		if X`Degree[1] ge X`Degree[2] then
+		DFF_Factors := [ Numerator(RationalFunction(Fac,K)) : Fac in DFF_Factors ];
+		/*if X`Degree[1] ge X`Degree[2] then
 			DFF_Factors := [ Evaluate(Fac,[Parent(Fac).2,Parent(Fac).1]) : Fac in DFF_Factors ];
 			X`AffineModel := Evaluate(f,[Kxy.2,Kxy.1]);
 			NewFac := RationalFunction(dx/Differential(X`FunctionField.1),K);
@@ -260,7 +260,7 @@ intrinsic RiemannSurface( f::RngMPolElt, sigma::PlcNumElt : Precision := 30, Int
 			X`AffineModel := f;
 		end if;
 		NrFac := #DFF_Factors;*/
-		DFF_Factors := [ Numerator(Fac) : Fac in DFF_Factors ];
+		//DFF_Factors := [ Numerator(Fac) : Fac in DFF_Factors ];
 		vprint RS,2 : "DFF_Factors:",DFF_Factors;
 		vprint RS,2 : "DFF_Powers:",DFF_Powers;
 		MinPows := [ Min( [DFF_Powers[j][k] : k in [1..X`Genus]]) : j in [1..NrFac] ];
