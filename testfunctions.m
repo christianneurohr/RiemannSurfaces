@@ -159,13 +159,13 @@ intrinsic SE_TestFamilies( m::RngIntElt, n::RngIntElt : Precision := 30, Exact :
 	print "C_n:",C_n;
 	time S := RiemannSurface(C_n,m:Precision:=Precision,IntMethod:=IntMethod);
 	time Tau := SmallPeriodMatrix(S);
-	A := AJM_Test(S);
+	/*A := AJM_Test(S);
 	assert &and[ Abs(x) lt S`Error : x in Eltseq(A) ];
 	A2 := AJM_Test_2(S);
 	print "A2:",A2;
 	assert &and[ Abs(x) lt S`Error : x in Eltseq(A2) ];
 	A3 := AJM_Test_3(S);
-	assert &and[ Abs(x) lt S`Error : x in Eltseq(A3) ];
+	assert &and[ Abs(x) lt S`Error : x in Eltseq(A3) ];*/
 	print "Check.";
 
 	// Exponential series
@@ -175,23 +175,23 @@ intrinsic SE_TestFamilies( m::RngIntElt, n::RngIntElt : Precision := 30, Exact :
 	print "E_n:",E_n;
 	time S := RiemannSurface(E_n,m:Precision:=Precision,IntMethod:=IntMethod);
 	time Tau := SmallPeriodMatrix(S);
-	A := AJM_Test(S);
+	/*A := AJM_Test(S);
 	assert &and[ Abs(x) lt S`Error : x in Eltseq(A) ];
 	A2 := AJM_Test_2(S);
 	print "A2:",A2;
 	assert &and[ Abs(x) lt S`Error : x in Eltseq(A2) ];
 	A3 := AJM_Test_3(S);
-	assert &and[ Abs(x) lt S`Error : x in Eltseq(A3) ];
+	assert &and[ Abs(x) lt S`Error : x in Eltseq(A3) ];*/
 	print "E_n_R:",E_n_R;
 	time S := RiemannSurface(E_n_R,m:Precision:=Precision,IntMethod:=IntMethod);
 	time Tau := SmallPeriodMatrix(S);
-	A := AJM_Test(S);
+	/*A := AJM_Test(S);
 	assert &and[ Abs(x) lt S`Error : x in Eltseq(A) ];
 	A2 := AJM_Test_2(S);
 	print "A2:",A2;
 	assert &and[ Abs(x) lt S`Error : x in Eltseq(A2) ];
 	A3 := AJM_Test_3(S);
-	assert &and[ Abs(x) lt S`Error : x in Eltseq(A3) ];
+	assert &and[ Abs(x) lt S`Error : x in Eltseq(A3) ];*/
 	print "Check.";	
 
 	// Bernoulli polynomial
@@ -201,25 +201,25 @@ intrinsic SE_TestFamilies( m::RngIntElt, n::RngIntElt : Precision := 30, Exact :
 	print "B_n:",B_n;
 	time S := RiemannSurface(B_n,m:Precision:=Precision,IntMethod:=IntMethod);
 	time Tau := SmallPeriodMatrix(S);
-	A := AJM_Test(S);
+	/*A := AJM_Test(S);
 	assert &and[ Abs(x) lt S`Error : x in Eltseq(A) ];
 	A2 := AJM_Test_2(S);
 	print "A2:",A2;
 	assert &and[ Abs(x) lt S`Error : x in Eltseq(A2) ];
 	A3 := AJM_Test_3(S);
-	assert &and[ Abs(x) lt S`Error : x in Eltseq(A3) ];
+	assert &and[ Abs(x) lt S`Error : x in Eltseq(A3) ];*/
 	if Degree(B_n_R) ge 3 then
 		print "B_n_R:",B_n_R;
 		time S := RiemannSurface(B_n_R,m:Precision:=Precision,IntMethod:=IntMethod);
 		time Tau := SmallPeriodMatrix(S);
-		A := AJM_Test(S);
+		/*A := AJM_Test(S);
 		assert &and[ Abs(x) lt S`Error : x in Eltseq(A) ];
 		A2 := AJM_Test_2(S);
 		print "A2:",A2;
 		assert &and[ Abs(x) lt S`Error : x in Eltseq(A2) ];
 		A3 := AJM_Test_3(S);
-		assert &and[ Abs(x) lt S`Error : x in Eltseq(A3) ];
-		end if;
+		assert &and[ Abs(x) lt S`Error : x in Eltseq(A3) ];*/
+	end if;
 	print "Check.";
 
 	//  Legendre polynomials
@@ -228,24 +228,24 @@ intrinsic SE_TestFamilies( m::RngIntElt, n::RngIntElt : Precision := 30, Exact :
 	P_n_R := Kx!Reverse(Coefficients(P_n));
 	print "P_n:",P_n;
 	time S := RiemannSurface(P_n,m:Precision:=Precision,IntMethod:=IntMethod);
-	A := AJM_Test(S);
+	/*A := AJM_Test(S);
 	assert &and[ Abs(x) lt S`Error : x in Eltseq(A) ];
 	A2 := AJM_Test_2(S);
 	assert &and[ Abs(x) lt S`Error : x in Eltseq(A2) ];
 	A3 := AJM_Test_3(S);
-	assert &and[ Abs(x) lt S`Error : x in Eltseq(A3) ];
+	assert &and[ Abs(x) lt S`Error : x in Eltseq(A3) ];*/
 	time Tau := SmallPeriodMatrix(S);
 	if Degree(P_n_R) ge 3 then
 		print "P_n_R:",P_n_R;
 		time S := RiemannSurface(P_n_R,m:Precision:=Precision,IntMethod:=IntMethod);
 		time Tau := SmallPeriodMatrix(S);
-		A := AJM_Test(S);
+		/*A := AJM_Test(S);
 		assert &and[ Abs(x) lt S`Error : x in Eltseq(A) ];
 		A2 := AJM_Test_2(S);
 		assert &and[ Abs(x) lt S`Error : x in Eltseq(A2) ];
 		A3 := AJM_Test_3(S);
-		assert &and[ Abs(x) lt S`Error : x in Eltseq(A3) ];
-		end if; 
+		assert &and[ Abs(x) lt S`Error : x in Eltseq(A3) ];*/
+	end if; 
 	print "Check.";
 	
 	// Laguerre polynomials
@@ -255,21 +255,21 @@ intrinsic SE_TestFamilies( m::RngIntElt, n::RngIntElt : Precision := 30, Exact :
 	print "L_n:",L_n;
 	time S := RiemannSurface(L_n,m:Precision:=Precision,IntMethod:=IntMethod);
 	time Tau := SmallPeriodMatrix(S);
-	A := AJM_Test(S);
+	/*A := AJM_Test(S);
 	assert &and[ Abs(x) lt S`Error : x in Eltseq(A) ];
 	A2 := AJM_Test_2(S);
 	assert &and[ Abs(x) lt S`Error : x in Eltseq(A2) ];
 	A3 := AJM_Test_3(S);
-	assert &and[ Abs(x) lt S`Error : x in Eltseq(A3) ];
+	assert &and[ Abs(x) lt S`Error : x in Eltseq(A3) ];*/
 	print "L_n_R:",L_n_R;
 	time S := RiemannSurface(L_n_R,m:Precision:=Precision,IntMethod:=IntMethod);
 	time Tau := SmallPeriodMatrix(S);
-	A := AJM_Test(S);
+	/*A := AJM_Test(S);
 	assert &and[ Abs(x) lt S`Error : x in Eltseq(A) ];
 	A2 := AJM_Test_2(S);
 	assert &and[ Abs(x) lt S`Error : x in Eltseq(A2) ];
 	A3 := AJM_Test_3(S);
-	assert &and[ Abs(x) lt S`Error : x in Eltseq(A3) ];
+	assert &and[ Abs(x) lt S`Error : x in Eltseq(A3) ];*/
 	print "Check.";
 
 	// Chebyshev polynomials
@@ -279,22 +279,22 @@ intrinsic SE_TestFamilies( m::RngIntElt, n::RngIntElt : Precision := 30, Exact :
 	print "T_n:",T_n;
 	time S := RiemannSurface(T_n,m:Precision:=Precision,IntMethod:=IntMethod);
 	time Tau := SmallPeriodMatrix(S);
-	A := AJM_Test(S);
+	/*A := AJM_Test(S);
 	assert &and[ Abs(x) lt S`Error : x in Eltseq(A) ];
 	A2 := AJM_Test_2(S);
 	assert &and[ Abs(x) lt S`Error : x in Eltseq(A2) ];
 	A3 := AJM_Test_3(S);
-	assert &and[ Abs(x) lt S`Error : x in Eltseq(A3) ];
+	assert &and[ Abs(x) lt S`Error : x in Eltseq(A3) ];*/
 	if Degree(T_n_R) ge 3 then
 		print "T_n_R:",T_n_R;
 		time S := RiemannSurface(T_n_R,m:Precision:=Precision,IntMethod:=IntMethod);
 		time Tau := SmallPeriodMatrix(S);
-		A := AJM_Test(S);
+		/*A := AJM_Test(S);
 		assert &and[ Abs(x) lt S`Error : x in Eltseq(A) ];
 		A2 := AJM_Test_2(S);
 		assert &and[ Abs(x) lt S`Error : x in Eltseq(A2) ];
 		A3 := AJM_Test_3(S);
-		assert &and[ Abs(x) lt S`Error : x in Eltseq(A3) ];
+		assert &and[ Abs(x) lt S`Error : x in Eltseq(A3) ];*/
 	end if;
 	print "Check.";
 

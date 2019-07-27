@@ -2,7 +2,7 @@
 
 	Numerical integration routines
  
-	Christian Neurohr, September 2018
+	Christian Neurohr, July 2019
 
 *******************************************************************************/
 
@@ -1134,6 +1134,18 @@ intrinsic GaussJacobiIntegrationPoints( AB::SeqEnum[FldRatElt], N::RngIntElt, Pr
 		Abscissas[k] := z;
 		Weights[k] := Const*ppinv/p2;
     	end for;
+
+	if AB[1] eq AB[2] then
+		if N mod 2 eq 1 then
+			Prune(~Abscissas);
+			Abscissas := [ -x : x in Abscissas] cat [0] cat Reverse(Abscissas);
+			Weights := Prune(Weights) cat Reverse(Weights);
+		else
+			Abscissas := [ -x : x in Abscissas] cat Reverse(Abscissas);
+			Weights := Weights cat Reverse(Weights);
+		end if;
+	end if;
+
 	return Abscissas,Weights;
 end intrinsic;
 
@@ -1492,7 +1504,7 @@ function DE_Integral(Edge,X:AJM:=false)
 	end for;
 
 	/* Evaluate differentials at abisccsas */
-	for t in [2..DEInt`NPoints] do
+	for t in [2..DEInt`N] do
 		x := DEInt`Abscissas[t];
 		mx := -x;
 		y1 := DEInt`ExtraWeights[t]/AC_mthRoot(x,Edge,X`Zetas,m,nm); // 1/y(x)
@@ -1517,9 +1529,9 @@ function DE_Integral(Edge,X:AJM:=false)
 			end for;
 		end for;
 	end for;
-	for j in [1..X`Genus] do
+	/*for j in [1..X`Genus] do
 		VectorIntegral[j] *:= DEInt`Factor;
-	end for;
+	end for;*/
 	return VectorIntegral;
 end function;
 function GJ_Integral(Edge,X:AJM:=false)
@@ -1535,7 +1547,7 @@ function GJ_Integral(Edge,X:AJM:=false)
 	else
 		nm := X`Degree[2]-2;
 	end if;
-print "GJINt:",GJInts;
+
 	/* Evaluate differentials at abisccsas */
 	for t in [1..N] do
 		ct := 1;
